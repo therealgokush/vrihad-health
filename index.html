@@ -1,0 +1,107 @@
+<!doctype html>
+<!-- Installable shell for Vrihad Health (GitHub Pages, /vrihad-health/).
+     It holds no health data. The portal itself always loads live from Google, behind Google sign-in and the
+     Portal_Users allowlist. Kept separate from the Saiyan Health shell on the same origin: its own scope,
+     manifest id, service-worker cache prefix and storage key.
+     After deploying the Apps Script web app, paste its /exec URL into APP_URL below. -->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A1C3D">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vrihad Health">
+<title>Vrihad Health</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--navy:#0A1C3D;--navy-2:#102A57;--royal:#3565E6;--sky:#5AAEEB;--ink:#EAF0FA;--ink-2:#B8C5DC;--line:rgba(234,240,250,.14)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--navy);color:var(--ink);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#F3F5F9}
+@media (prefers-color-scheme:dark){iframe{background:#07101F}}
+main{min-height:100%;display:flex;flex-direction:column;justify-content:center;
+  padding:max(32px,env(safe-area-inset-top)) 20px max(32px,env(safe-area-inset-bottom));max-width:30rem;margin:0 auto}
+.mark{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;margin-bottom:22px;
+  background:linear-gradient(160deg,var(--royal),var(--sky))}
+.mark svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:2;stroke-linejoin:round}
+h1{font-size:26px;line-height:1.2;letter-spacing:-.01em;margin:0 0 10px;font-weight:750}
+p{margin:0 0 14px;color:var(--ink-2)}
+ol{margin:6px 0 22px;padding:0;list-style:none;counter-reset:s}
+ol li{counter-increment:s;position:relative;padding:0 0 14px 40px;color:var(--ink-2)}
+ol li::before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;
+  display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--ink);border:1px solid var(--line)}
+ol li strong{color:var(--ink);font-weight:650}
+.actions{display:grid;gap:10px}
+.btn{display:flex;align-items:center;justify-content:center;min-height:50px;padding:0 18px;border-radius:14px;
+  font:inherit;font-weight:650;text-decoration:none;cursor:pointer;border:1px solid transparent}
+.btn.primary{background:var(--royal);color:#fff}
+.btn.quiet{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.note{font-size:14px;margin-top:22px}
+code{background:var(--navy-2);padding:2px 6px;border-radius:6px;font-size:14px}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<main id="screen" hidden></main>
+<script>
+// The Apps Script web app URL (Deploy > Manage deployments), ending in /exec.
+const APP_URL = 'https://script.google.com/macros/s/AKfycbwlt6exnFSkamX7hr8LLt3Xax3WMqu46urkWirNq1cjTpVm96UaSET5giXdPSPbO0Okuw/exec';
+const READY_KEY = 'vrihad-shell:ready';
+const valid = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(APP_URL);
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const wantsSetup = new URLSearchParams(location.search).has('setup');
+const screen = document.getElementById('screen');
+const MARK = '<div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></div>';
+
+function store(get, value) {
+  try { return get ? localStorage.getItem(READY_KEY) === '1' : localStorage.setItem(READY_KEY, '1'); } catch (e) { return false; }
+}
+function show(html) { screen.innerHTML = MARK + html; screen.hidden = false; }
+function frame() {
+  screen.hidden = true;
+  const f = document.createElement('iframe');
+  f.src = APP_URL;
+  f.title = 'Vrihad Health';
+  f.allow = 'clipboard-write';
+  document.body.append(f);
+}
+
+if (!valid) {
+  show('<h1>Almost there</h1><p>Set <code>APP_URL</code> in this file to the Vrihad Health web app URL (it ends in <code>/exec</code>), then reload.</p>');
+} else if (isIOS) {
+  // Safari blocks Google sign-in inside embedded pages, so on iPhone and iPad the portal opens in this window.
+  if (store(true) && !wantsSetup) {
+    location.replace(APP_URL);
+  } else {
+    show('<h1>Vrihad Health</h1>' +
+      '<p>On iPhone and iPad the portal opens full screen from here. The first time, sign in with the Google account on the family list and tap <strong>Allow</strong>.</p>' +
+      '<div class="actions"><a class="btn primary" id="go" href="' + APP_URL + '">Open Vrihad Health</a></div>' +
+      '<p class="note">Next time this icon opens the portal straight away.</p>');
+    document.getElementById('go').addEventListener('click', () => store(false));
+  }
+} else if (store(true) && !wantsSetup) {
+  frame();
+} else {
+  show('<h1>Set up this device</h1>' +
+    '<p>Google needs you to sign in and allow access once, in a normal browser tab. After that the portal opens inside this app.</p>' +
+    '<ol><li><strong>Open the portal once.</strong> Sign in with the Google account on the family list, then tap <strong>Allow</strong>.</li>' +
+    '<li><strong>Come back here</strong> and continue.</li></ol>' +
+    '<div class="actions"><a class="btn primary" href="' + APP_URL + '" target="_blank" rel="noopener">Open the portal once</a>' +
+    '<button class="btn quiet" type="button" id="continue">I’ve allowed access, continue</button></div>' +
+    '<p class="note">If this browser is signed in to several Google accounts, the portal uses the first one. Sign in with the family account first if it says you are not on the list. To see this screen again, add <code>?setup</code> to the address.</p>');
+  document.getElementById('continue').addEventListener('click', () => { store(false); frame(); });
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
